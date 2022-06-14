@@ -63,7 +63,9 @@ regdir_to_list <- function(reg.dir, verbose = FALSE){
 plot_general_registration_parameters <- function(registration.list, 
                                                  plot_RB_shifts = TRUE, 
                                                  sorting = "filename",
-                                                 filename_to_num = FALSE){
+                                                 filename_to_num = FALSE,
+                                                 cutprop = NA,
+                                                 cutval = NA){
   
   if(!sorting %in% c("filename","stars","score")){stop("sorting parameter must be filename, stars or score\n")}
   
@@ -108,6 +110,24 @@ plot_general_registration_parameters <- function(registration.list,
     #theme_minimal() +
     theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
   
+  
+  if(!(is.na(cutprop)|is.na(cutval))){
+
+    
+    cutoff <- data.frame(cbind(property=cutprop, value=as.numeric(cutval)), stringsAsFactors = FALSE)
+    cutoff$value <- as.numeric(cutoff$value)
+    
+    numpass <- sum(general.long$property == cutprop & general.long$value > cutval)
+    passphrase <- paste0(numpass, " out of ", sum(general.long$property == cutprop))
+    
+    general.plot <- general.plot +
+      geom_hline(data = cutoff, aes(yintercept = value, group = property)) +
+      ggtitle(passphrase)
+    
+    
+  }
+  
+  
   return(general.plot)
   
 }
@@ -118,19 +138,21 @@ plot_general_registration_parameters <- function(registration.list,
 #################### EXECUTE ######################
 ###################################################
 
-output.dir <- "./M57"
+output.dir <- "./test1"
 
 if(!dir.exists(output.dir)){dir.create(output.dir)}
 ####################################
 
-registration.list <- regdir_to_list("~/../Desktop/SharpCap Captures/2022-05-22/M57/03_26_48/", verbose = T)
+registration.list <- regdir_to_list("~/../Desktop/SharpCap Captures/2022-06-15/m92_15s_275/00_21_17/", verbose = T)
 
 ####################################
 
-genplot <- plot_general_registration_parameters(registration.list, plot_RB_shifts = T, sorting = "filename", filename_to_num = F)
-
-ggsave(genplot, filename = file.path(output.dir,"M57_QC.png"), device = "png", width = 32, height = 16)
-
-
-
+genplot <- plot_general_registration_parameters(registration.list, 
+                                                plot_RB_shifts = F, 
+                                                sorting = "filename", 
+                                                filename_to_num = F,
+                                                cutprop = "OverallQuality",
+                                                cutval = 300)
+genplot
+ggsave(genplot, filename = file.path(output.dir,"QC.png"), device = "png", width = 32, height = 16)
 
