@@ -131,19 +131,54 @@ plot_session_visibility <- function(catalog_extract,
 }
 
 
+plot_session <- function(catalog_extract,
+                         current_date = Sys.Date(),
+                         night_length_h = 8,
+                         observer_latitude = "51:01:19",
+                         object_label_col = "M"){
+  
+  #### Convert date to south RA start and end
+  decimal_month <- as.numeric(gsub("^[0-9]{4}-|-[0-9]{2}$","",current_date)) + as.numeric(gsub(".+-","",current_date))/30.5
+  midnight_south_RA <- 4+(2*decimal_month)
+  if(midnight_south_RA >= 24){midnight_south_RA <- midnight_south_RA - 24}
+  south_RA_at_start <- midnight_south_RA - night_length_h/2
+  south_RA_at_end <- midnight_south_RA + night_length_h/2
+  
+  #### Call the general function
+  sessionplot <- plot_session_visibility(catalog_extract = catalog_extract,
+                                         south_RA_at_start = south_RA_at_start, 
+                                         south_RA_at_end = south_RA_at_end, 
+                                         observer_latitude = observer_latitude,
+                                         object_label_col = object_label_col)
+  
+  return(sessionplot)
+  
+}
 
-table(NGC_cat$Type)
+
+
+######## EXAMPLES
 
 plot_session_visibility(catalog_extract = NGC_cat[NGC_cat$Type %in% c("G","GGroup","GPair","PN") & NGC_cat$Common.names != "",],
                         south_RA_at_start = 19, 
-                        south_RA_at_end = 1, 
+                        south_RA_at_end = 21, 
                         observer_latitude = observer_latitude,
                         object_label_col = "Common.names")
 
 
-ggsave("sessionplot_commonname_G_PN.png", height = 12, width = 24, device = "png", bg = "white")
+#ggsave("sessionplot_commonname_G_PN.png", height = 12, width = 24, device = "png", bg = "white")
+
+
+plot_session_visibility(catalog_extract = NGC_cat[NGC_cat$Type %in% c("GCl") & NGC_cat$V.Mag < 7,],
+                        south_RA_at_start = 19, 
+                        south_RA_at_end = 21, 
+                        observer_latitude = observer_latitude,
+                        object_label_col = "M")
+
+
+
+plot_session(catalog_extract = NGC_cat[!is.na(NGC_cat$M),])
 
 
 
 
-NGC_cat[grep("4676", NGC_cat$Name),]
