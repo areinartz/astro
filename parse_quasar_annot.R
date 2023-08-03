@@ -160,3 +160,34 @@ ggplot(annot_text, aes(x=Redshift, y=v)) +
   geom_point()
 
 
+
+
+
+
+###### calculate proportion of pixels with a higher v value than our putative furthest
+
+1 - sum(sample_values$v >= subdf2$v) / nrow(sample_values)
+
+
+
+### we need to ignore samples on M13 of course
+
+non_obj_samples_idx <- which((rand_x < 2500 | rand_x > 5100) & (rand_y < 1300 | rand_y > 3800))
+non_obj_samples <- sample_values[non_obj_samples_idx,]
+
+1 - sum(non_obj_samples$v >= subdf2$v) / nrow(non_obj_samples)
+
+
+ggplot(non_obj_samples, aes(x = v)) +
+  scale_x_continuous(trans = "log10") +
+  geom_density(fill = "lightblue") +
+  geom_vline(xintercept = subdf2$v, col = "darkred") +
+  ggtitle("Non object v density", paste0(round(sum(non_obj_samples$v >= subdf2$v) / nrow(non_obj_samples),digits = 4),"% chance of false positive")) +
+  theme_minimal()
+
+ggsave(filename = "FP_odds.png", device = "png", bg = "white")
+###### calculate proportion of pixels with a higher v value than our putative furthest
+
+
+
+
