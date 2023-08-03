@@ -138,6 +138,9 @@ plot_general_registration_parameters <- function(registration.list,
 #################### EXECUTE ######################
 ###################################################
 
+# test edit for test commit
+
+###
 output.dir <- "./test1"
 
 if(!dir.exists(output.dir)){dir.create(output.dir)}
