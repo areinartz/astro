@@ -7,10 +7,10 @@ library(ggplot2)
 
 
 
+setwd("~/../Desktop/quasar_demo/")
 
-
-annot_text_file <- "~/../Downloads/M13 v02.objects.txt"
-image_file <- "~/../Downloads/M13 v02.png"
+annot_text_file <- "~/../Desktop/quasar_demo/M51_v6.objects.txt"
+image_file <- "~/../Desktop/quasar_demo/M51_v6.png"
 
 annot_text <- read.delim(annot_text_file, stringsAsFactors = F, skip = 2, sep = ";")
 
@@ -52,8 +52,6 @@ for(i in 1:n){
 
 
 #### HSV values from RGB
-
-
 hsv_df <- data.frame(t(rgb2hsv(t(as.matrix(annot_text[,c("R","G","B")])))))
 annot_text <- cbind(annot_text, hsv_df)
 
@@ -61,22 +59,17 @@ sample_values <- cbind(sample_values, data.frame(t(rgb2hsv(t(as.matrix(sample_va
 
 
 #### Annotate quasar of interest
-
-
 annot_text$QOI <- FALSE
-
 annot_text$QOI[grep("364114", annot_text$Name)] <- TRUE
 
-#### log transform v values
 
+#### log transform v values
 annot_text$logV <- log10(annot_text$v)
 sample_values$logV <- log10(sample_values$v)
 
 ####
 
 cols <- rev(rainbow(7)[-7])
-
-
 
 ggplot(annot_text, aes(x = Bmag, y = v)) +
   #scale_y_continuous(trans = "log10") +
@@ -106,6 +99,18 @@ ggplot(annot_text, aes(x = Bmag, y = logV)) +
 ggsave(filename = "logV_vs_Bmag.png", device = "png", bg = "white")
 
 
+### Hue vs redshift
+
+ggplot(annot_text, aes(x = Redshift, y = h)) +
+  geom_point() +
+  #geom_hline(yintercept = median(sample_values$h), col = "blue") +
+  #geom_boxplot(data = sample_values, aes(y=RGBsum, x=max(annot_text$Redshift)*1.1)) +
+  #geom_violin(data = sample_values, aes(y=B, x=max(annot_text$Redshift, na.rm = T)*1.1), fill="light blue") +
+  theme_minimal()
+
+
+####==================================================================================================####
+####==================================================================================================####
 
 
 
@@ -140,53 +145,73 @@ ggplot(annot_text, aes(x = Redshift, y = B)) +
 
 
 
-##### find the new one
-
-subdf <- annot_text[annot_text$Bmag < 20,]
-subdf <- subdf[which(subdf$Redshift == max(subdf$Redshift, na.rm = T)),]
-
-
-
-### find the even dimmer one
-
-
-subdf2 <- annot_text[annot_text$Bmag > 21,]
-subdf2 <- subdf2[which(subdf2$Redshift == max(subdf2$Redshift, na.rm = T)),]
-
-
-##### Redshift vs hue
-
-ggplot(annot_text, aes(x=Redshift, y=v)) +
-  geom_point()
+# ##### find the new one
+# 
+# subdf <- annot_text[annot_text$Bmag < 20,]
+# subdf <- subdf[which(subdf$Redshift == max(subdf$Redshift, na.rm = T)),]
+# 
+# 
+# 
+# ### find the even dimmer one
+# 
+# 
+# subdf2 <- annot_text[annot_text$Bmag > 21,]
+# subdf2 <- subdf2[which(subdf2$Redshift == max(subdf2$Redshift, na.rm = T)),]
 
 
-
-
+subdf2 <- annot_text[32,]
 
 
 ###### calculate proportion of pixels with a higher v value than our putative furthest
+
+
 
 1 - sum(sample_values$v >= subdf2$v) / nrow(sample_values)
 
 
 
-### we need to ignore samples on M13 of course
+### we need to ignore samples on the object of course
 
-non_obj_samples_idx <- which((rand_x < 2500 | rand_x > 5100) & (rand_y < 1300 | rand_y > 3800))
+object_topleft_corner <- c(x = 700,
+                           y = 400)
+object_bottomright_corner <- c(x = 2000,
+                               y = 2200)
+
+
+non_obj_samples_idx <- which((rand_x < object_topleft_corner["x"] | rand_x > object_bottomright_corner["x"]) & (rand_y < object_topleft_corner["y"] | rand_y > object_bottomright_corner["y"]))
 non_obj_samples <- sample_values[non_obj_samples_idx,]
 
 1 - sum(non_obj_samples$v >= subdf2$v) / nrow(non_obj_samples)
+#1 - sum(non_obj_samples$v >= subdf$v) / nrow(non_obj_samples)
+
+ggplot(non_obj_samples, aes(x = v)) +
+  scale_x_continuous(trans = "log10") +
+  geom_density(fill = "lightblue") +
+  geom_vline(xintercept = subdf2$v, col = "darkred") +
+  #geom_vline(xintercept = subdf$v, col = "darkred") +
+  ggtitle("Non object v density", paste0(round(sum(non_obj_samples$v >= subdf2$v) / nrow(non_obj_samples),digits = 4),"% chance of false positive")) +
+  theme_minimal()
+
+ggsave(filename = "FP_odds.png", device = "png", bg = "white")
+
+###### calculate proportion of pixels with a higher v value than our putative furthest
 
 
 ggplot(non_obj_samples, aes(x = v)) +
   scale_x_continuous(trans = "log10") +
   geom_density(fill = "lightblue") +
   geom_vline(xintercept = subdf2$v, col = "darkred") +
-  ggtitle("Non object v density", paste0(round(sum(non_obj_samples$v >= subdf2$v) / nrow(non_obj_samples),digits = 4),"% chance of false positive")) +
+  geom_vline(xintercept = subdf$v, col = "darkred") +
+  ggtitle("Non object v density", paste0(
+    "Q1: P = ",round(sum(non_obj_samples$v >= subdf$v) / nrow(non_obj_samples),digits = 4),
+    "\n",
+    "Q2: P = ",round(sum(non_obj_samples$v >= subdf2$v) / nrow(non_obj_samples),digits = 4))) +
   theme_minimal()
 
-ggsave(filename = "FP_odds.png", device = "png", bg = "white")
-###### calculate proportion of pixels with a higher v value than our putative furthest
+
+ggsave(filename = "FP_bg.png", device = "png", bg = "white")
+
+
 
 
 
