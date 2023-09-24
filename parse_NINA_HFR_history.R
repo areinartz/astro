@@ -8,7 +8,7 @@ library(ggplot2)
 #### script to parse and plot NINA HFR history file
 
 
-hfrhist_file <- "~/N.I.N.A/2023-09-14_history.csv"
+hfrhist_file <- "~/N.I.N.A/2023-09-23_history.csv"
 
 hfrhist <- read.csv(hfrhist_file)
 
@@ -28,3 +28,15 @@ ggplot(molten_QC, aes(x=Filename, y=value, group=variable)) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
   
+
+
+ggplot(molten_QC[molten_QC$variable %in% c("HFR","Stars"),], aes(x=Filename, y=value, group=variable)) +
+  geom_line() +
+  facet_grid(rows = vars(variable), scales = "free") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+
+
+
+
+ordr <- QC_metrics[order(QC_metrics$Stars),]
