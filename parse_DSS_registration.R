@@ -146,7 +146,10 @@ output.dir <- "./test1"
 if(!dir.exists(output.dir)){dir.create(output.dir)}
 ####################################
 
-registration.list <- regdir_to_list("~/../Desktop/SharpCap Captures/2022-06-15/m92_15s_275/00_21_17/", verbose = T)
+indir <- "~/../Desktop/NINA_captures/2023-09-05/LIGHT/"
+indir <- "C:/Astrophotography/Data/NX_studio/MWPOR/"
+
+registration.list <- regdir_to_list(indir, verbose = T)
 
 ####################################
 
@@ -155,7 +158,12 @@ genplot <- plot_general_registration_parameters(registration.list,
                                                 sorting = "filename", 
                                                 filename_to_num = F,
                                                 cutprop = "OverallQuality",
-                                                cutval = 300)
+                                                cutval = 1150)
 genplot
 ggsave(genplot, filename = file.path(output.dir,"QC.png"), device = "png", width = 32, height = 16)
 
+genplot +
+  geom_vline(xintercept = 133) +
+  geom_vline(xintercept = 140)
+
+names(registration.list)[133:140]
