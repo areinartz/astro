@@ -3,15 +3,15 @@
 
 library(reshape2)
 library(ggplot2)
+library(ggbeeswarm)
 
 ######################################
 ######################################
 ###### INPUT
 
-project_name <- "eveil"
+project_name <- "cave1"
 
-loglist <- c("C:/Astrophotography/Data/M9ASTRO/NINA_HFR_logs/2024-07-13_history.csv",
-             "C:/Astrophotography/Data/M9ASTRO/NINA_HFR_logs/2024-07-14_history.csv")
+loglist <- c("C:/Astrophotography/Data/M9ASTRO/NINA_HFR_logs/2024-07-19_history.csv")
 
 frames_dir <- "C:/Astrophotography/Data/M9ASTRO/"
 crap_dir <- paste0("C:/Astrophotography/crap_frames/",project_name)
@@ -101,7 +101,7 @@ plot_lines <- function(wide_table){
 ###### SESSION COMPARISON
 
 wide_table <- get_wide_table(loglist, frames_dir)
-long_table <- melt(wide_table[wide_table$used == T,c("session","Temperature", "HFR", "Stars", "Median", "Mean", "StDev", "MAD", "Rms.ArcSec", "used")], id.vars = "session")
+long_table <- melt(wide_table[wide_table$used == T,c("session","Temperature", "HFR", "Stars", "Median", "Mean", "StDev", "MAD", "Rms.ArcSec")], id.vars = "session")
 session_boxplots <- plot_boxes(long_table[(!(long_table$variable %in% c("Mean", "StDev", "MAD"))),])
 ggsave(session_boxplots, device = "png", width = 6, height = 10, path = plot_dir, filename = "session_raw_boxplots.png", bg = "white")
 
@@ -120,14 +120,15 @@ session_boxplots
 filtered_table <- wide_table
 
 ##
-filtered_table$used[filtered_table$HFR > 2.6] <- FALSE
-filtered_table$used[filtered_table$Median > 3800] <- FALSE
-filtered_table$used[filtered_table$Stars <= 1053] <- FALSE
-filtered_table$used[filtered_table$Rms.ArcSec > 0.8] <- FALSE
+filtered_table$used[filtered_table$HFR > 2.65] <- FALSE
+filtered_table$used[filtered_table$Median > 4250] <- FALSE
+filtered_table$used[filtered_table$Stars <= 300] <- FALSE
+filtered_table$used[filtered_table$Rms.ArcSec > 1] <- FALSE
 
 
-sort(filtered_table[filtered_table$used == T,]$Stars)[19]
+#sort(filtered_table[filtered_table$used == T,]$Stars)[19]
 
+table(filtered_table$used)
 
 ##################################################################################################################
 ##################################################################################################################
