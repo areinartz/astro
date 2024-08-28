@@ -9,9 +9,11 @@ library(ggbeeswarm)
 ######################################
 ###### INPUT
 
-project_name <- "cave1"
+project_name <- "iris2024_08_27"
 
-loglist <- c("C:/Astrophotography/Data/M9ASTRO/NINA_HFR_logs/2024-07-19_history.csv")
+loglist <- c(#"C:/Astrophotography/Data/M9ASTRO/NINA_HFR_logs/2024-07-29_history.csv",
+             #"C:/Astrophotography/Data/M9ASTRO/NINA_HFR_logs/2024-08-18_history.csv",
+             "C:/Astrophotography/Data/M9ASTRO/NINA_HFR_logs/2024-08-27_history.csv")
 
 frames_dir <- "C:/Astrophotography/Data/M9ASTRO/"
 crap_dir <- paste0("C:/Astrophotography/crap_frames/",project_name)
@@ -106,7 +108,7 @@ session_boxplots <- plot_boxes(long_table[(!(long_table$variable %in% c("Mean", 
 ggsave(session_boxplots, device = "png", width = 6, height = 10, path = plot_dir, filename = "session_raw_boxplots.png", bg = "white")
 
 session_boxplots
-
+table(wide_table[wide_table$used == T,]$session)
 
 
 ##################################################################################################################
@@ -120,15 +122,16 @@ session_boxplots
 filtered_table <- wide_table
 
 ##
-filtered_table$used[filtered_table$HFR > 2.65] <- FALSE
-filtered_table$used[filtered_table$Median > 4250] <- FALSE
-filtered_table$used[filtered_table$Stars <= 300] <- FALSE
-filtered_table$used[filtered_table$Rms.ArcSec > 1] <- FALSE
+filtered_table$used[filtered_table$HFR > 2.75] <- FALSE
+filtered_table$used[filtered_table$Median > 3600] <- FALSE
+# filtered_table$used[filtered_table$Stars <= 600] <- FALSE
+filtered_table$used[filtered_table$Rms.ArcSec > 1.2] <- FALSE
 
 
 #sort(filtered_table[filtered_table$used == T,]$Stars)[19]
 
 table(filtered_table$used)
+table(filtered_table[filtered_table$used == T,]$session)
 
 ##################################################################################################################
 ##################################################################################################################
@@ -147,7 +150,7 @@ table(filtered_table$used)
 ######################################
 ######################################
 
-
+summary(filtered_table[filtered_table$used == T,]$Median)
 
 plot_lines(filtered_table)
 plot_lines(wide_table)
@@ -161,22 +164,25 @@ plot_lines(wide_table)
 
 crapframes <- filtered_table[filtered_table$used == F,"Filename"]
 
-movecrapframes <- function(frames_dir, crapframes){
+movecrapframes <- function(frames_dir, crap_dir, crapframes){
   
   for (crapframe in crapframes) {
     
     ## find it
     crapfile <- list.files(path = frames_dir, recursive = T, pattern = paste0("^",crapframe,"$"), full.names = T)
-    crapfile_short <- gsub("^.+/","",crapfile)
     
-    ## move it
-    file.rename(from=crapfile,
-                to=file.path(crap_dir, crapfile_short))
+    if (length(crapfile) > 0){
+      
+      crapfile_short <- gsub("^.+/","",crapfile)
+      
+      ## move it
+      file.rename(from=crapfile,
+                  to=file.path(crap_dir, crapfile_short))
+      
+    }
   }
-  
-  
 }
 
-#movecrapframes(frames_dir, crapframes)
+movecrapframes(frames_dir, crap_dir, crapframes)
 
 
